@@ -47,7 +47,8 @@ object MediaPostStreamEtl extends FlinkEnv {
     //字段清洗
     val etl_media_stream = inputStream.map(media => {
       //字段位置
-      media_post(media.rowkey,media.`type`,media.post_user_name,etl_word(media.post_content),media.dw_gofish_media_id,media.media)
+      media_post(media.rowkey,media.`type`,media.post_user_name,
+        etl_word(media.post_content),media.dw_gofish_media_id,media.media)
     })
       .filter(!_.post_content.equals("")) //过滤得到非空的信息  //BoundedOutOfOrdernessTimestampExtractor
 
@@ -70,7 +71,8 @@ object MediaPostStreamEtl extends FlinkEnv {
       //传入参数, 返回多个结果，需要接卸
       val param = Seq(("data_text", content), ("proba","1"))
       val industryArr= getHttpVocation(content, param)
-      media_post_industry(media.post_user_name,media.`type`,media.post_content,industryArr)  //类型industry:mutable.Set[String]
+      media_post_industry(media.rowkey,media.`type`,media.post_user_name,media.post_content,
+        media.dw_gofish_media_id,media.media,industryArr)  //类型industry:mutable.Set[String]
     })
       //过滤得到二级行业为：75,907,230,847,449,36,757,745
      .filter(message => industryFilter(message.sub_industry_id))

@@ -110,6 +110,18 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-runtime-web_2.11</artifactId>
             <version>${flink.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.5</version>
         </dependency>
 
     </dependencies>
