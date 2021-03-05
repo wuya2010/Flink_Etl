@@ -79,9 +79,16 @@ object getKafkaConnect2 {
     properties.setProperty("value.deserializer","org.apache.kafka.common.serialization.StringDeserializer")
     //加入不设置
 //    properties.setProperty("enable.auto.commit","false") //不自动提交
-    properties.setProperty("auto.offset.reset","earliest")  //从最近的偏移量开始获取数据 fixme: latest /earliest
-    //earliest kafka出错后重启后使用
-    //
+    properties.setProperty("auto.offset.reset","latest")  //从最近的偏移量开始获取数据
+
+    /**
+     * fixme: latest /earliest ：
+     * 1. 设置了earliest, 被消费过的数据记录了offset
+     * 2.
+     *
+     */
+
+
 
     //fixme: 方法2： 定义样例类,加载数据后成样例类, 这种方式不够直观
 //    val kakfaStreammodle = env.addSource(new FlinkKafkaConsumer[modle]("testTopic", new modleDeserializationSchema, properties))
@@ -89,42 +96,43 @@ object getKafkaConnect2 {
     val kakfaStreammodle = env.addSource(new FlinkKafkaConsumer[String]("testTopic", new SimpleStringSchema, properties))
 
 
-    //自定flink 消费kafka的偏移量位置
-    val consumer = new FlinkKafkaConsumer[String]("testTopic", new SimpleStringSchema(), properties)
-
-    //设置偏移量
-    var offsets = mutable.Map[KafkaTopicPartition,java.lang.Long]()
-    offsets.put(new KafkaTopicPartition("testTopic", 0), 5l)
-    offsets.put(new KafkaTopicPartition("testTopic", 1), 5l)
-    offsets.put(new KafkaTopicPartition("testTopic", 2), 5l)
-
-
-    /**
-     * Flink从topic中最初的数据开始消费
-     */
-    consumer.setStartFromEarliest()
-
-    /**
-     * Flink从topic中指定的时间点开始消费，指定时间点之前的数据忽略
-     */
-    consumer.setStartFromTimestamp(5l)
-
-    /**
-     * Flink从topic中指定的offset开始，这个比较复杂，需要手动指定offset``
-     */
-    import scala.collection.JavaConverters._
-    consumer.setStartFromSpecificOffsets(offsets.asJava)  //fixme: FlinkKafkaConsumer010 没有setStartFromSpecificOffsets这个方法怎么办
-
-    /**
-     * Flink从topic中最新的数据开始消费
-     */
-    consumer.setStartFromLatest()
-
-    /**
-     * Flink从topic中指定的group上次消费的位置开始消费，所以必须配置group.id参数
-     */
-    consumer.setStartFromGroupOffsets()
-
+    // fixme:
+//    //自定flink 消费kafka的偏移量位置
+//    val consumer = new FlinkKafkaConsumer[String]("testTopic", new SimpleStringSchema(), properties)
+//
+//    //设置偏移量
+//    var offsets = mutable.Map[KafkaTopicPartition,java.lang.Long]()
+//    offsets.put(new KafkaTopicPartition("testTopic", 0), 5l)
+//    offsets.put(new KafkaTopicPartition("testTopic", 1), 5l)
+//    offsets.put(new KafkaTopicPartition("testTopic", 2), 5l)
+//
+//
+//    /**
+//     * Flink从topic中最初的数据开始消费
+//     */
+//    consumer.setStartFromEarliest()
+//
+//    /**
+//     * Flink从topic中指定的时间点开始消费，指定时间点之前的数据忽略
+//     */
+//    consumer.setStartFromTimestamp(5l)
+//
+//    /**
+//     * Flink从topic中指定的offset开始，这个比较复杂，需要手动指定offset``
+//     */
+//    import scala.collection.JavaConverters._
+//    consumer.setStartFromSpecificOffsets(offsets.asJava)  //fixme: FlinkKafkaConsumer010 没有setStartFromSpecificOffsets这个方法怎么办
+//
+//    /**
+//     * Flink从topic中最新的数据开始消费
+//     */
+//    consumer.setStartFromLatest()
+//
+//    /**
+//     * Flink从topic中指定的group上次消费的位置开始消费，所以必须配置group.id参数
+//     */
+//    consumer.setStartFromGroupOffsets()
+//
 
 
     kakfaStreammodle.print()

@@ -29,15 +29,18 @@ object FlinkUtils{
   def getKafkaProperties = {
     //kafka : 设置参数
     val properties = new Properties()
-    properties.setProperty("bootstrap.servers","101.36.109.223:9092,101.36.109.7:9092,101.36.109.94:9092")  //连接的 kafka 节点
-    properties.setProperty("group.id","TestTopic")  //使用group的话，连接时带上groupid，topic的消息会分发到10个consumer上，每条消息只被消费1次
+    properties.setProperty("bootstrap.servers", "192.168.18.151:9092,192.168.18.152:9092,192.168.18.150:9092")//"101.36.109.223:9092,101.36.109.7:9092,101.36.109.94:9092")  //连接的 kafka 节点
+    properties.setProperty("group.id","wang2")  //使用group的话，连接时带上groupid，topic的消息会分发到10个consumer上，每条消息只被消费1次
     properties.setProperty("key.deserializer","org.apache.kafka.common.serialization.StringDeserializer")
     properties.setProperty("value.deserializer","org.apache.kafka.common.serialization.StringDeserializer")
-    properties.setProperty("auto.offset.reset","latest")  //从最近的偏移量开始获取数据
+    properties.setProperty("auto.offset.reset","earliest")  //从最近的偏移量开始获取数据
     //返回
     properties
   }
 
+  /**
+   * 构建es的连接
+   */
    def buildElasticsearchSink()={
      //设置es参数
      val config = new util.HashMap[String,String]()

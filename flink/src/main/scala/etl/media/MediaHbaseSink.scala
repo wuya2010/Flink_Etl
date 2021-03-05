@@ -2,6 +2,7 @@ package etl.media
 
 import com.alibaba.fastjson.JSONObject
 import etl.media.MediaPostStreamEtl.media_post_result
+import etl.media.utils.ConfigureUtil
 import main.scala.HbseUtil.getHbseConnect.{modle, test}
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.sink.{RichSinkFunction, SinkFunction}
@@ -24,7 +25,7 @@ class MediaHbaseSink  extends RichSinkFunction[String]{ //参数 In 输入
 
   override def open(parameters: Configuration): Unit = {
     val conf = HBaseConfiguration.create()
-    conf.set("hbase.zookeeper.quorum", "192.168.18.148:2181,192.168.18.149:2181,192.168.18.150:2181")
+    conf.set("hbase.zookeeper.quorum", ConfigureUtil.getProperty("hbase.zookeeper.quorum"))//"192.168.18.148:2181,192.168.18.149:2181,192.168.18.150:2181")
     conf.set("hbase.zookeeper.property.clientPort", "2181")
     connection = ConnectionFactory.createConnection(conf)
   }
@@ -43,24 +44,37 @@ class MediaHbaseSink  extends RichSinkFunction[String]{ //参数 In 输入
   def write2Hbase(tableName: String, value: String) = {
 
     //获取样例类
-    var streamResult:media_post_result = null
+    var streamResult:JSONObject = null
     //解析json 转样例类
     val jsonObj = com.alibaba.fastjson.JSON.parseObject(value)
     if( jsonObj.isInstanceOf[JSONObject]){
-      streamResult = com.alibaba.fastjson.JSON.parseObject(value,classOf[media_post_result])
+      //转换为样例类
+      streamResult = com.alibaba.fastjson.JSON.parseObject(value)
     }
-
-
-
 
     val table = connection.getTable(TableName.valueOf(tableName))
     //怎么生成rowkey,将rowkey带过来
-    val put = new Put(Bytes.toBytes(System.currentTimeMillis()))
-//    put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("post_user_name"),Bytes.toBytes())
-//    put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("post_content"),Bytes.toBytes(streamResult.post_content))
-//    put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("type"),Bytes.toBytes(streamObj.getString("type")))
-//    put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("industry"),Bytes.toBytes(streamObj.getString("industry")))
-//    put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("parent_id"),Bytes.toBytes(streamObj.getString("parent_id")))
+//    joinObject.put("parent_id",input.rowkey)
+//    joinObject.put("type",input.`type`)
+//    joinObject.put("post_user_name",input.post_user_name)
+//    joinObject.put("post_user_name",input.post_content)
+//    joinObject.put("post_content",input.dw_gofish_media_id)
+//    joinObject.put("post_content",input.media)
+//    joinObject.put("sub_industry_id",input.sub_industry_id.mkString(",")) //将set集合转换为string
+//    joinObject.put("parent_id",parent_id.mkString(","))
+
+    //    put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("post_content"),Bytes.toBytes(streamResult.post_content))
+    //    put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("type"),Bytes.toBytes(streamObj.getString("type")))
+    //    put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("industry"),Bytes.toBytes(streamObj.getString("industry")))
+    //    put.addColumn(Bytes.toBytes("info"),Bytes.toBytes("parent_id"),Bytes.toBytes(streamObj.getString("parent_id")))
+
+    import scala.collection.JavaConverters._
+    val fieldNameSet = jsonObj.keySet().asScala.diff(Set("rowkey"))
+    val put = new Put(Bytes.toBytes(streamResult.getString("rowkey")))
+    //数据写入
+    fieldNameSet.map(field => {
+      put.addColumn(Bytes.toBytes("info"),Bytes.toBytes(field),Bytes.toBytes(streamResult.getString(field)))
+    })
 
     //表的数据写入
     table.put(put)

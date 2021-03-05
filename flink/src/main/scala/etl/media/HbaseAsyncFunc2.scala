@@ -112,16 +112,19 @@ class HbaseAsyncFunc2  extends RichAsyncFunction[media_post_industry, String]{
       }
     }}
 
-
     //没有关联的数据给空
     val joinObject = new JSONObject()
     //返回结果: (post_user_name:String,`type`:String ,post_content: String,industry_1:String,industry_2:String,industry_3:String)
-    joinObject.put("parent_id",parent_id.mkString(","))
-    joinObject.put("post_user_name",input.post_user_name)
+    joinObject.put("rowkey",input.rowkey)
     joinObject.put("type",input.`type`)
+    joinObject.put("post_user_name",input.post_user_name)
     joinObject.put("post_content",input.post_content)
+    joinObject.put("dw_gofish_media_id",input.dw_gofish_media_id)
+    joinObject.put("media",input.media)
     joinObject.put("sub_industry_id",input.sub_industry_id.mkString(",")) //将set集合转换为string
+    joinObject.put("parent_id",parent_id.mkString(","))
 
+    //返回
     joinObject
   }
 

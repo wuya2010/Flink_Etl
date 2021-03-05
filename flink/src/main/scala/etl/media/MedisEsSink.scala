@@ -2,6 +2,7 @@ package etl.media
 
 import java.util
 
+import com.alibaba.fastjson.JSON
 import org.apache.flink.api.common.functions.RuntimeContext
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction
 import org.apache.flink.streaming.api.scala._
@@ -12,7 +13,8 @@ import org.apache.http.auth.{AuthScope, UsernamePasswordCredentials}
 import org.apache.http.impl.client.BasicCredentialsProvider
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder
 import org.elasticsearch.action.index.IndexRequest
-import org.elasticsearch.client.{Requests, RestClientBuilder}
+import org.elasticsearch.action.update.UpdateRequest
+import org.elasticsearch.client.{RequestOptions, Requests, RestClientBuilder}
 import org.elasticsearch.common.xcontent.XContentType
 
 
@@ -29,19 +31,18 @@ class MedisEsSink  extends RichSinkFunction[String]{
   
     //设置es参数
     val config = new util.HashMap[String,String]()
-    //该配置表示批量写入ES时的记录条数
-    config.put("enable.auto.commit", "true")
-    config.put("auto.commit.interval.ms", "1000")
-    config.put("auto.offset.reset", "earliest")
-    config.put("session.timeout.ms", "30000")
-    config.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-    config.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    //kafka 相关设置， 该配置表示批量写入ES时的记录条数
+//    config.put("enable.auto.commit", "true")
+//    config.put("auto.commit.interval.ms", "1000")
+//    config.put("auto.offset.reset", "earliest")
+//    config.put("session.timeout.ms", "30000")
+//    config.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+//    config.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
 
-    //设置密码
+    //测试服务器：
     config.put("es.net.http.auth.user", "elastic")
-    config.put("s.net.http.auth.pass", "H84I4fw6fDgdenuNRgfe")
-  
-    // 定义es的httpHost 配置信息
+    config.put("s.net.http.auth.pass", "H84I4fw6fDgdenuNRgfe") //测试与本地
+
     val httpHosts = new util.ArrayList[HttpHost]()
     httpHosts.add(new HttpHost("192.168.18.151", 19200, "http"))
     httpHosts.add(new HttpHost("192.168.18.149", 19200, "http"))
@@ -50,15 +51,13 @@ class MedisEsSink  extends RichSinkFunction[String]{
    //用 bulider 建立连接 , 数据完成写入
    val esBuilder = new ElasticsearchSink.Builder(httpHosts, new ElasticsearchSinkFunction[String](){
             def createIndexRequest(element: String): IndexRequest = {
-
               val streamObj = com.alibaba.fastjson.JSON.parseObject(element)
+              val key_id = streamObj.getString("rowkey")
+//              val value = streamObj.remove("rowkey").toString
+//              println(value) //2205196013984295589
 
-              // 用HashMap作为插入es的数据类型
-//              val sourceData = new util.HashMap[String, String]()
-//              sourceData.put("name", element.name)
-//              sourceData.put("age", element.age.toString)
-//              sourceData.put("time", element.time)
-              Requests.indexRequest.index("String").`type`("_doc").source(streamObj,XContentType.JSON) //解析json串
+              Requests.indexRequest.index("wang_test2").`type`("_doc").id(key_id).source(streamObj,XContentType.JSON) //解析json串, 指定id
+//              Requests.indexRequest.index("wang_test2").`type`("_doc").source(streamObj,XContentType.JSON) //解析json串, 指定id
             }
 
             override

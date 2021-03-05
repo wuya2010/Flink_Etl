@@ -42,7 +42,7 @@ trait SparkDataSource {
     val quorum = "hbase.zookeeper.quorum"
     val clientPort = "hbase.zookeeper.property.clientPort"
 
-    //hbase连接设置
+    //hbase连接设置,
     HbaseConf.set(clientPort, ConfigureUtil.getProperty(clientPort))
     HbaseConf.set(TableInputFormat.INPUT_TABLE, table_name)
     HbaseConf.set(quorum, ConfigureUtil.getProperty(quorum))

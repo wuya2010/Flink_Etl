@@ -27,7 +27,7 @@ trait FlinkEnv {
     // fixme: FixedDelayRestartBackoffTimeStrategy(maxNumberRestartAttempts=3, backoffTimeMS=10000)
 
     val env = StreamExecutionEnvironment.getExecutionEnvironment
-    env.setParallelism(1)
+    env.setParallelism(3)
 
     env.getConfig.setAutoWatermarkInterval(300L)
 
